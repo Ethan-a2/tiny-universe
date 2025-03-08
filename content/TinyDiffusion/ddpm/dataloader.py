@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 
 
-def load_transformed_dataset(img_size=32, batch_size=128) -> DataLoader:
+def load_transformed_dataset(img_size=32, batch_size=128, subset_size=None) -> DataLoader:
     """加载并转换CIFAR10数据集"""
     train_data_transform = transforms.Compose([
         transforms.Resize((img_size, img_size)),
@@ -30,6 +30,15 @@ def load_transformed_dataset(img_size=32, batch_size=128) -> DataLoader:
                                                train=False, 
                                                download=False,
                                                transform=test_data_transform)
+    
+    # 如果指定了子集大小，则只使用部分数据
+    if subset_size is not None and subset_size < len(train_dataset):
+        indices = torch.randperm(len(train_dataset))[:subset_size]
+        train_dataset = torch.utils.data.Subset(train_dataset, indices)
+        
+        test_subset_size = min(subset_size // 5, len(test_dataset))
+        test_indices = torch.randperm(len(test_dataset))[:test_subset_size]
+        test_dataset = torch.utils.data.Subset(test_dataset, test_indices)
 
     # 创建 DataLoader
     train_loader = DataLoader(train_dataset,
